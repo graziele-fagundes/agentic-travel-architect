@@ -11,7 +11,8 @@ The application is composed of two distinct processes communicating via standard
 1.  **Orchestrator (Client):** A Python process running the LangGraph state machine. It handles the planner, user interaction, and final synthesis.
 2.  **Tool Server (MCP):** A separate process running a FastMCP server that wraps the search provider (Tavily).
 
-### Workflow Diagram
+### Agent Diagram
+<img width="1024" height="768" alt="Travel Agent" src="https://github.com/user-attachments/assets/e6e10c03-6ceb-4b26-8b1e-5c120a855995" />
 
 ### Component Interaction (MCP Pattern)
 
