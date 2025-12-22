@@ -12,7 +12,8 @@ The application is composed of two distinct processes communicating via standard
 2.  **Tool Server (MCP):** A separate process running a FastMCP server that wraps the search provider (Tavily).
 
 ### Agent Diagram
-<img width="1024" height="768" alt="Travel Agent" src="https://github.com/user-attachments/assets/e6e10c03-6ceb-4b26-8b1e-5c120a855995" />
+
+<img width="1024" height="768" alt="Travel Agent" src="https://github.com/user-attachments/assets/8a851425-7518-4ac1-a79e-5335bc8beb6f" />
 
 ### Component Interaction (MCP Pattern)
 
