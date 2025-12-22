@@ -27,7 +27,7 @@ The Agent spawns the MCP Server as a subprocess. This ensures isolation between 
 
 1.  Clone the repository:
     ```bash
-    git clone [https://github.com/your-username/agentic-travel-architect.git](https://github.com/your-username/agentic-travel-architect.git)
+    git clone [https://github.com/graziele-fagundes/agentic-travel-architect.git](https://github.com/graziele-fagundes/agentic-travel-architect.git)
     cd agentic-travel-architect
     ```
 
