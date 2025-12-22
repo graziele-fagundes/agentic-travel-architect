@@ -106,12 +106,12 @@ async def executor_node(state: AgentState):
             async with ClientSession(read, write) as session:
                 await session.initialize()
                 
-                # Verify connection by listing tools (debug level only)
+                # Verify connection by listing tools
                 tools = await session.list_tools()
-                logger.debug(f"Connected. Tools: {[t.name for t in tools.tools]}")
+                logger.info(f"Executor Node: Connected. Tools: {[t.name for t in tools.tools]}")
                 
                 # Execute the search tool
-                logger.info(f"Executing search for {len(queries)} queries.")
+                logger.info(f"Executor Node: Executing search for {len(queries)} queries.")
                 result = await session.call_tool("search_tourism", arguments={"queries": queries})
                 
                 # Extract and concatenate text content from results
@@ -120,13 +120,13 @@ async def executor_node(state: AgentState):
                     if content.type == "text":
                         final_text += content.text
                 
-                logger.info("Search completed successfully.")
-                logger.debug(f"Raw Search Results: {final_text[:100]}...") # Log brief snippet
+                logger.info("Executor Node: Search completed successfully.")
+                logger.debug(f"Executor Node: Raw Search Results: {final_text[:100]}...") # Log brief snippet
                 
                 return {"search_results": final_text}
                 
     except Exception as e:
-        logger.error(f"Failed to execute MCP tool: {e}")
+        logger.error(f"Executor Node: Failed to execute MCP tool: {e}")
         raise e
 
 def writer_node(state: AgentState):
@@ -183,17 +183,17 @@ async def main():
     thread_id = str(uuid.uuid4())
     config = {"configurable": {"thread_id": thread_id}}
     
-    logger.info(f"Starting Session ID: {thread_id}")
+    logger.info(f"Main: Starting Session ID: {thread_id}")
     
     # Input example
     user_input = (
-        "I want a 3-day trip to Rio de Janeiro, Brazil. "
+        "I want a 2-day trip to Rio de Janeiro, Brazil. "
         "I want to AVOID the crowded beaches (like Copacabana) and focus on "
-        "the bohemian culture of Santa Teresa, hiking the 'Morro Dois Irmãos' for the view, "
+        "small beaches, hiking the 'Morro Dois Irmãos' for the view, "
         "and finding an authentic 'Roda de Samba' in Lapa or Pedra do Sal at night."
     )
 
-    logger.info(f"Processing request: {user_input}")
+    logger.info(f"Main: Processing request: {user_input}")
 
     # Phase 1: Planning (Run until interrupt)
     async for event in app.astream({"user_request": user_input}, config=config):
@@ -211,7 +211,7 @@ async def main():
     approval = input("Approve Execution? (y/n): ")
     
     if approval.lower() == 'y':
-        logger.info("Plan approved. Resuming execution...")
+        logger.info("Main: Plan approved. Resuming execution...")
         
         # Phase 2: Execution & Writing
         state = await app.ainvoke(None, config=config)
@@ -219,19 +219,21 @@ async def main():
         
         # Console Output (Preview)
         print("\n" + "="*60)
-        print(f"TRIP DESTINATION: {final_trip.destination.upper()}")
-        print("="*60)
+        print("FINAL ITINERARY PREVIEW")
+        print(f"Trip Destination: {final_trip.destination.upper()}")
         print(f"Overview: {final_trip.overview[:150]}...\n")
-        print("(Generating full report...)")
+        print("="*60)
         
         # File Generation (Full Itinerary)
+        print("\n" + "="*60)        
         filename = save_itinerary_to_markdown(final_trip)
-        
         if filename:
-            print(f"SUCCESS! Itinerary saved to: {os.path.abspath(filename)}")
+            print("FINAL ITINERARY")
+            print(f"Full Itinerary saved to: {filename}")
+            print("\n" + "="*60)
 
     else:
-        logger.warning("Plan rejected by user. Terminating process.")
+        logger.warning("Main: Plan rejected by user. Terminating process.")
 
 if __name__ == "__main__":
     asyncio.run(main())

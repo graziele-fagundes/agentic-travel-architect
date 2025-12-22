@@ -18,8 +18,8 @@ def save_itinerary_to_markdown(itinerary: TripItinerary) -> str | None:
         
         # Create a safe filename (e.g., "Paris_France_Itinerary.md")
         safe_dest = re.sub(r'[^a-zA-Z0-9]', '_', itinerary.destination)
-        timestamp = datetime.datetime.now().strftime("%Y%m%d")
-        filename = os.path.join(TRIPS_DIR, f"{safe_dest}_Itinerary_{timestamp}.md")
+        date_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = os.path.join(TRIPS_DIR, f"{safe_dest}_Itinerary_{date_time}.md")
         
         # Build the Markdown content
         md_content = f"""# ✈️ Trip Itinerary: {itinerary.destination}

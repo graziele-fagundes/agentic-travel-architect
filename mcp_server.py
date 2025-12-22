@@ -10,13 +10,6 @@ from tavily import TavilyClient
 # Load environment variables
 load_dotenv()
 
-# Configure logging for observability
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - [MCP SERVER] - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger("TravelTools")
-
 # CONSTANTS for Resource Management
 MAX_QUERIES_PER_BATCH = 3 
 MAX_CHARS_PER_RESULT = 300 
@@ -40,12 +33,10 @@ def search_tourism(queries: List[str]) -> str:
     """
     # 1. Validation
     if not TAVILY_API_KEY:
-        logger.error("TAVILY_API_KEY is missing. Aborting search.")
         return "Error: Server misconfigured (Missing API Key)."
 
     # 2. Batch Slicing
     processing_queries = queries[:MAX_QUERIES_PER_BATCH]
-    logger.info(f"Processing {len(processing_queries)} queries (Requested: {len(queries)})")
 
     consolidated_results = []
     tavily = TavilyClient(api_key=TAVILY_API_KEY)
@@ -53,8 +44,6 @@ def search_tourism(queries: List[str]) -> str:
     # 3. Execution Loop
     for query in processing_queries:
         try:
-            logger.info(f"Searching Tavily: '{query}'")
-            
             # API Call Parameters:
             # - search_depth="basic": Faster and cheaper (1 credit)
             # - include_answer=True: Generates a direct answer
@@ -70,7 +59,7 @@ def search_tourism(queries: List[str]) -> str:
             
             # A. The AI-Generated Direct Answer
             if response.get('answer'):
-                summary += f"**AI Summary**: {response['answer']}\n\n"
+                summary += f"**Summary**: {response['answer']}\n\n"
             
             # B. The Source Snippets (Truncated)
             for res in response.get('results', []):
@@ -87,7 +76,6 @@ def search_tourism(queries: List[str]) -> str:
             consolidated_results.append(summary)
 
         except Exception as e:
-            logger.error(f"Search failed for '{query}': {e}")
             consolidated_results.append(f"Error searching '{query}': {str(e)}")
 
     # 5. Final Output
