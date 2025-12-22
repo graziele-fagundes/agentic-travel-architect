@@ -6,6 +6,7 @@ import os
 import datetime
 from typing import TypedDict
 from dotenv import load_dotenv
+import uuid
 
 # LangGraph & LangChain Imports
 from langgraph.graph import StateGraph, END
@@ -23,9 +24,9 @@ from outputs import save_itinerary_to_markdown
 
 # --- 1. Configuration & Logging Setup ---
 
-# Configure logging to standard output
+# Configure logging to standard output 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.WARNING,
     format='%(asctime)s - [%(levelname)s] - %(name)s - %(message)s',
     handlers=[logging.StreamHandler(sys.stdout)]
 )
@@ -74,7 +75,8 @@ def planner_node(state: AgentState):
         "Guidelines:\n"
         "1. Use search-engine friendly keywords.\n"
         "2. Plan queries for attractions, hidden gems, and logistics.\n"
-        "3. Target specific historical eras or sites if requested.\n\n"
+        "3. Target specific historical eras or sites if requested.\n"
+        "4. Priority Matters: Order your queries from MOST CRITICAL to LEAST CRITICAL.\n"
         "Explain in 'reasoning' why these searches are necessary."
     )
     
@@ -121,7 +123,7 @@ async def executor_node(state: AgentState):
                         final_text += content.text
                 
                 logger.info("Executor Node: Search completed successfully.")
-                logger.debug(f"Executor Node: Raw Search Results: {final_text[:100]}...") # Log brief snippet
+                logger.debug(f"Executor Node: Raw Search Results: {final_text[:100]}...")
                 
                 return {"search_results": final_text}
                 
@@ -179,20 +181,40 @@ app = workflow.compile(
 # --- 5. Main Execution ---
 
 async def main():
-    import uuid
-    thread_id = str(uuid.uuid4())
-    config = {"configurable": {"thread_id": thread_id}}
+    # Ask wich level of logging details the user wants
+    print("Select logging level:")
+    print("1 - INFO")
+    print("2 - DEBUG")
+    print("3 - WARNING")
+    choice = input("Enter choice (1/2/3): ")
+    if choice == '1':
+        logger.setLevel(logging.INFO)
+        logger.info("Main: Logging level set to INFO.")
+    elif choice == '2':
+        logger.setLevel(logging.DEBUG)
+        logger.debug("Main: Logging level set to DEBUG.")
+    elif choice == '3':
+        logger.setLevel(logging.WARNING)
+        logger.warning("Main: Logging level set to WARNING.")
+    else:
+        logger.warning("Main: Invalid choice. Defaulting to INFO level.")
     
-    logger.info(f"Main: Starting Session ID: {thread_id}")
-    
-    # Input example
+    # Default input
     user_input = (
         "I want a 2-day trip to Rio de Janeiro, Brazil. "
         "I want to AVOID the crowded beaches (like Copacabana) and focus on "
         "small beaches, hiking the 'Morro Dois Irmãos' for the view, "
         "and finding an authentic 'Roda de Samba' in Lapa or Pedra do Sal at night."
     )
+    # Ask if the user wants to provide a custom input
+    custom_input = input("Would you like to provide a custom trip request? (y/n): ")
+    if custom_input.lower() == 'y':
+        user_input = input("Please enter your trip request: ")
 
+    # Unique thread ID for this session
+    thread_id = str(uuid.uuid4())
+    config = {"configurable": {"thread_id": thread_id}}
+    logger.info(f"Main: Starting Session ID: {thread_id}")
     logger.info(f"Main: Processing request: {user_input}")
 
     # Phase 1: Planning (Run until interrupt)
@@ -219,18 +241,15 @@ async def main():
         
         # Console Output (Preview)
         print("\n" + "="*60)
-        print("FINAL ITINERARY PREVIEW")
+        print("ITINERARY PREVIEW")
         print(f"Trip Destination: {final_trip.destination.upper()}")
-        print(f"Overview: {final_trip.overview[:150]}...\n")
-        print("="*60)
+        print(f"Overview: {final_trip.overview[:150]}...")
         
-        # File Generation (Full Itinerary)
-        print("\n" + "="*60)        
+        # File Generation (Full Itinerary)     
         filename = save_itinerary_to_markdown(final_trip)
         if filename:
-            print("FINAL ITINERARY")
             print(f"Full Itinerary saved to: {filename}")
-            print("\n" + "="*60)
+            print("="*60)
 
     else:
         logger.warning("Main: Plan rejected by user. Terminating process.")
