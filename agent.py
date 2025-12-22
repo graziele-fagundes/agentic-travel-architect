@@ -214,8 +214,8 @@ async def main():
         logger.info("Plan approved. Resuming execution...")
         
         # Phase 2: Execution & Writing
-        result = await app.ainvoke(None, config=config)
-        final_trip = result['final_itinerary']
+        state = await app.ainvoke(None, config=config)
+        final_trip = state['final_itinerary']
         
         # Console Output (Preview)
         print("\n" + "="*60)
